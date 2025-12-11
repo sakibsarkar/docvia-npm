@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import type { IAppWidget, IToken } from "../../index";
-import { ChatBot, getApiAccess } from "../../index";
+import { IAppWidget, IToken } from "../../interface";
+import { getApiAccess } from "../../utils";
+import ChatBot from "./ChatBot";
 
 interface IResponse {
   widget: IAppWidget;
@@ -23,7 +24,9 @@ const ChatWidget: React.FC<{ apiKey: string }> = ({ apiKey }) => {
 
   if (!widget || !widget.widget || !widget.token) return <></>;
 
-  return <ChatBot apiKey={apiKey} widget={widget.widget} token={widget.token} />;
+  return (
+    <ChatBot apiKey={apiKey} widget={widget.widget} token={widget.token} />
+  );
 };
 
 export default ChatWidget;

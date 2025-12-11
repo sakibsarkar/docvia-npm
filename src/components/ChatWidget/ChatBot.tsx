@@ -1,11 +1,7 @@
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
-import {
-  getQueryAns,
-  type ChatMessage,
-  type IAppWidget,
-  type IToken,
-} from "../../index";
+import { ChatMessage, IAppWidget, IToken } from "../../interface";
+import { getQueryAns } from "../../utils";
 
 // Default Agent Icon SVG
 const DefaultAgentIcon = ({ ...props }: React.SVGProps<SVGSVGElement>) => (
