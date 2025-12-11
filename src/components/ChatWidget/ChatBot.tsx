@@ -1,16 +1,19 @@
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
-import type { IAppWidget,ChatMessage } from "../../index";
-
-
-
+import {
+  getQueryAns,
+  type ChatMessage,
+  type IAppWidget,
+  type IToken,
+} from "../../index";
 
 // Default Agent Icon SVG
-const DefaultAgentIcon = () => (
+const DefaultAgentIcon = ({ ...props }: React.SVGProps<SVGSVGElement>) => (
   <svg
     width="32"
     height="32"
     viewBox="0 0 32 32"
+    {...props}
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
   >
@@ -22,7 +25,15 @@ const DefaultAgentIcon = () => (
   </svg>
 );
 
-const ChatBot = ({ widget }: { widget: IAppWidget }) => {
+const ChatBot = ({
+  widget,
+  token,
+  apiKey,
+}: {
+  widget: IAppWidget;
+  token: IToken;
+  apiKey: string;
+}) => {
   const {
     headerColor,
     headerTextColor,
@@ -34,6 +45,7 @@ const ChatBot = ({ widget }: { widget: IAppWidget }) => {
     agentPhoto,
   } = widget || {};
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "1",
@@ -50,9 +62,9 @@ const ChatBot = ({ widget }: { widget: IAppWidget }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSendMessage = () => {
-    if (inputValue.trim() === "") return;
-
+  const handleSendMessage = async () => {
+    if (inputValue.trim() === "" || isLoading) return;
+    setIsLoading(true);
     // Add visitor message
     const visitorMessage: ChatMessage = {
       id: `visitor-${Date.now()}`,
@@ -64,17 +76,21 @@ const ChatBot = ({ widget }: { widget: IAppWidget }) => {
     setMessages((prev) => [...prev, visitorMessage]);
     setInputValue("");
 
-    // Simulate agent response after a short delay
-    setTimeout(() => {
+    try {
+      const res = await getQueryAns({ apiKey, query: inputValue, token });
       const agentResponse: ChatMessage = {
         id: `agent-${Date.now()}`,
         sender: "agent",
         message:
-          "Thanks for your message! I received it and will get back to you shortly.",
+          res ||
+          "Sorry, Our system having some technical issues. Please try again later.",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, agentResponse]);
-    }, 500);
+      setIsLoading(false);
+    } catch {
+      setIsLoading(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -237,120 +253,198 @@ const ChatBot = ({ widget }: { widget: IAppWidget }) => {
   };
 
   return (
-    <div style={styles.container}>
-      {/* Toggle Button */}
-      <button
-        style={styles.toggleButton}
-        onClick={() => setIsOpen(!isOpen)}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "scale(1.1)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "scale(1)";
-        }}
-        title={isOpen ? "Close chat" : "Open chat"}
-      >
-        {isOpen ? "✕" : "💬"}
-      </button>
+    <>
+      <div style={styles.container}>
+        {/* Toggle Button */}
+        <button
+          style={styles.toggleButton}
+          onClick={() => setIsOpen(!isOpen)}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "scale(1.1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "scale(1)";
+          }}
+          title={isOpen ? "Close chat" : "Open chat"}
+        >
+          {isOpen ? "✕" : "💬"}
+        </button>
 
-      {/* Chat Box */}
-      {isOpen && (
-        <div style={styles.chatBox}>
-          {/* Header */}
-          <div style={styles.header}>
-            <div style={styles.headerContent}>
-              {agentPhoto ? (
-                <img
-                  src={agentPhoto || "/placeholder.svg"}
-                  alt={agentName}
-                  style={styles.agentPhoto}
-                />
-              ) : (
-                <div style={styles.agentIcon}>
-                  <DefaultAgentIcon />
-                </div>
-              )}
-              <span style={styles.agentName}>{agentName}</span>
-            </div>
-            <button
-              style={styles.closeHeaderButton}
-              onClick={() => setIsOpen(false)}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.opacity = "1";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.opacity = "0.7";
-              }}
-              title="Close"
-            >
-              ✕
-            </button>
-          </div>
-
-          {/* Messages Container */}
-          <div style={styles.messagesContainer}>
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                style={{
-                  ...styles.messageGroup,
-                  ...(msg.sender === "visitor" ? styles.messageGroupRight : {}),
-                }}
-              >
-                {msg.sender === "agent" && !agentPhoto && (
-                  <div
-                    style={{
-                      ...styles.agentIcon,
-                      width: "32px",
-                      height: "32px",
-                      color: agentTextColor,
-                    }}
-                  >
+        {/* Chat Box */}
+        {isOpen && (
+          <div style={styles.chatBox}>
+            {/* Header */}
+            <div style={styles.header}>
+              <div style={styles.headerContent}>
+                {agentPhoto ? (
+                  <img
+                    src={agentPhoto || "/placeholder.svg"}
+                    alt={agentName}
+                    style={styles.agentPhoto}
+                  />
+                ) : (
+                  <div style={styles.agentIcon}>
                     <DefaultAgentIcon />
                   </div>
                 )}
+                <span style={styles.agentName}>{agentName}</span>
+              </div>
+              <button
+                style={styles.closeHeaderButton}
+                onClick={() => setIsOpen(false)}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = "1";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = "0.7";
+                }}
+                title="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Messages Container */}
+            <div style={styles.messagesContainer}>
+              {messages.map((msg) => (
                 <div
+                  key={msg.id}
                   style={{
-                    ...styles.messageBubble,
-                    ...(msg.sender === "agent"
-                      ? styles.agentMessage
-                      : styles.visitorMessage),
+                    ...styles.messageGroup,
+                    ...(msg.sender === "visitor"
+                      ? styles.messageGroupRight
+                      : {}),
                   }}
                 >
-                  {msg.message}
+                  {msg.sender === "agent" && !agentPhoto && (
+                    <div
+                      style={{
+                        ...styles.agentIcon,
+                        width: "32px",
+                        height: "32px",
+                        color: agentTextColor,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <DefaultAgentIcon color="black" />
+                    </div>
+                  )}
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: msg.message.replace(/\n/g, "<br>"),
+                    }}
+                    style={{
+                      ...styles.messageBubble,
+                      ...(msg.sender === "agent"
+                        ? styles.agentMessage
+                        : styles.visitorMessage),
+                    }}
+                  ></div>
                 </div>
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
+              ))}
+              {isLoading && (
+                <div style={{ ...styles.messageGroup }}>
+                  {!agentPhoto && (
+                    <div
+                      style={{
+                        ...styles.agentIcon,
+                        width: "32px",
+                        height: "32px",
+                        color: agentTextColor,
+                      }}
+                    >
+                      <DefaultAgentIcon color="black" />
+                    </div>
+                  )}
+                  <div
+                    style={{
+                      ...styles.messageBubble,
+                      ...styles.agentMessage,
+                      fontStyle: "italic",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Typing
+                    <span className="typing-dots">
+                      <span>.</span>
+                      <span>.</span>
+                      <span>.</span>
+                    </span>
+                  </div>
+                </div>
+              )}
 
-          {/* Input Area */}
-          <div style={styles.inputArea}>
-            <input
-              type="text"
-              style={styles.inputField}
-              placeholder="Type a message..."
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-            />
-            <button
-              style={styles.sendButton}
-              onClick={handleSendMessage}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.opacity = "0.9";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.opacity = "1";
-              }}
-              title="Send message"
-            >
-              Send
-            </button>
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input Area */}
+            <div style={styles.inputArea}>
+              <input
+                type="text"
+                style={styles.inputField}
+                placeholder="Type a message..."
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={handleKeyPress}
+              />
+              <button
+                style={styles.sendButton}
+                onClick={handleSendMessage}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = "0.9";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = "1";
+                }}
+                title="Send message"
+              >
+                Send
+              </button>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+      <style>
+        {`
+          .typing-dots {
+  display: inline-flex;
+  gap: 2px; /* space between dots */
+}
+
+.typing-dots span {
+  display: flex;
+  align-items: center;
+  font-size: 24px;
+  height: 10px;
+  animation: wave 1s infinite;
+}
+
+.typing-dots span:nth-child(1) {
+  animation-delay: 0s;
+}
+.typing-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.typing-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes wave {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.3;
+  }
+  30% {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
+}
+
+          `}
+      </style>
+    </>
   );
 };
 

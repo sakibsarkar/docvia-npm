@@ -1,11 +1,5 @@
-import { ChatWidget } from "./components/ChatWidget";
-
 const App = () => {
-  return (
-    <>
-      <ChatWidget apiKey="" />
-    </>
-  );
+  return <div></div>;
 };
 
 export default App;

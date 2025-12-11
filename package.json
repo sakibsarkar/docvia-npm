@@ -1,15 +1,16 @@
 {
   "name": "docvia",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
+  "private": false,
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build --config vite.config.ts",
     "lint": "eslint .",
     "preview": "vite preview"
   },
-  "main": "dist/index.js",
-  "module": "dist/index.esm.js",
+  "main": "dist/index.umd.js",
+  "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist"
@@ -17,6 +18,11 @@
   "peerDependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
+  },
+  "author": {
+    "email": "sakibsarkar707@gmail.com",
+    "name": "Md Nazmul Islam Sakib",
+    "url": "https://nazmul-islam-sakib.vercel.app"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

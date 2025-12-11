@@ -1,16 +1,19 @@
 import { useEffect, useState } from "react";
-import type { IAppWidget } from "../../index";
-import { ChatBot } from "../../index";
+import type { IAppWidget, IToken } from "../../index";
+import { ChatBot, getApiAccess } from "../../index";
 
+interface IResponse {
+  widget: IAppWidget;
+  token: IToken;
+}
 const ChatWidget: React.FC<{ apiKey: string }> = ({ apiKey }) => {
-  const [widget, setWidget] = useState<IAppWidget | null>(null);
+  const [widget, setWidget] = useState<IResponse | null>(null);
 
   useEffect(() => {
     const fetchWidget = async () => {
       try {
-        const response = await fetch(`/api/widget?apiKey=${apiKey}`);
-        const data = (await response.json()) as { data: IAppWidget };
-        setWidget(data?.data);
+        const response = await getApiAccess(apiKey);
+        setWidget(response);
       } catch (error) {
         console.error("Error fetching widget:", error);
       }
@@ -18,8 +21,9 @@ const ChatWidget: React.FC<{ apiKey: string }> = ({ apiKey }) => {
     fetchWidget();
   }, [apiKey]);
 
-  if (!widget) return <></>;
-  return <ChatBot widget={widget} />;
+  if (!widget || !widget.widget || !widget.token) return <></>;
+
+  return <ChatBot apiKey={apiKey} widget={widget.widget} token={widget.token} />;
 };
 
 export default ChatWidget;
