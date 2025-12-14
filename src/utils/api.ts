@@ -1,6 +1,6 @@
 import type { IAppWidget, IToken } from "../interface";
 
-export const baseApiUrl = "http://localhost:5000/api/v1";
+export const baseApiUrl = "https://docvia-backend.vercel.app/api/v1";
 
 interface IResponse {
   widget: IAppWidget;
