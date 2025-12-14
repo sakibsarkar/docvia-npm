@@ -5,16 +5,21 @@ export const baseApiUrl = "http://localhost:5000/api/v1";
 interface IResponse {
   widget: IAppWidget;
   token: IToken;
+  uid?: string;
 }
 export const getApiAccess = async (apiKey: string) => {
+  const uuid = localStorage.getItem("docvia_uid") || undefined;
   const response = await fetch(`${baseApiUrl}/chat-bot/access-token`, {
     method: "POST",
-    body: JSON.stringify({ appSecret: apiKey }),
+    body: JSON.stringify({ appSecret: apiKey, uuid }),
     headers: {
       "Content-Type": "application/json",
     },
   });
   const data = (await response.json()) as { data: IResponse };
+  if (data?.data?.uid) {
+    localStorage.setItem("docvia_uid", data.data.uid);
+  }
   return data?.data;
 };
 
