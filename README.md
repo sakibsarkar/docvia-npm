@@ -23,7 +23,7 @@ yarn add docvia
 ```
 
 ```js
-import { ChatWidget } from "docvia";
+import ChatWidget from "docvia";
 
 const App = () => {
   const apiKey = import.meta.env.VITE_DOCVIA_API_KEY;

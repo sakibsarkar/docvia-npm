@@ -1,6 +1,6 @@
 {
   "name": "docvia",
-  "version": "0.1.7",
+  "version": "0.2.0",
   "type": "module",
   "private": false,
   "scripts": {
@@ -16,9 +16,10 @@
   "files": [
     "dist"
   ],
+  "sideEffects": false,
   "peerDependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react": ">=18",
+    "react-dom": ">=18"
   },
   "repository": {
     "type": "git",
@@ -42,5 +43,10 @@
     "globals": "^16.5.0",
     "typescript": "~5.9.3",
     "vite": "^7.2.4"
-  }
+  },
+  "keywords": [
+    "docvia",
+    "docvia npm",
+    "react ai chat bot"
+  ]
 }

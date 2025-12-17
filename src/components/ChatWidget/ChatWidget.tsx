@@ -1,3 +1,4 @@
+"use client";
 import { useEffect, useState } from "react";
 import { IAppWidget, IToken } from "../../interface";
 import { getApiAccess } from "../../utils";
